@@ -15,6 +15,7 @@ from fmu.dataio.export.rms._conditional_rms_imports import import_rms_package
 from fmu.dataio.export.rms._utils import check_rmsapi_version
 from fmu.datamodels.common.enums import Classification
 from fmu.datamodels.fmu_results.enums import Content
+from fmu.datamodels.fmu_results import standard_result
 from fmu.datamodels.standard_results import enums
 
 rmsapi, rmsjobs = import_rms_package()
@@ -133,9 +134,9 @@ class _ExportZoneRegionMapping(SimpleExportRMSBase):
         _logger.debug("Zone/region mapping created with %d rows", len(self._dataframe))
 
     @property
-    def _standard_result(self) -> None:  # type: ignore
-        """No standard result for zone/region mapping."""
-        return None
+    def _standard_result(self) -> standard_result.ZoneRegionIndexStandardResult:
+        """Standard result type for the exported data."""
+        return standard_result.ZoneRegionIndexStandardResult(name=enums.StandardResultName.zone_region_index)
 
     # @property
     # def _subfolder(self) -> str:
