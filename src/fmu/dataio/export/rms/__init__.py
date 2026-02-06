@@ -7,6 +7,10 @@ from .structure_depth_fault_surfaces import export_structure_depth_fault_surface
 from .structure_depth_isochores import export_structure_depth_isochores
 from .structure_depth_surfaces import export_structure_depth_surfaces
 from .structure_time_surfaces import export_structure_time_surfaces
+from .zone_region_mapping import (
+    create_zone_region_mapping,
+    export_zone_region_mapping,
+)
 
 __all__ = [
     "export_structure_depth_fault_lines",
@@ -19,4 +23,6 @@ __all__ = [
     "export_field_outline",
     "export_fluid_contact_surfaces",
     "export_fluid_contact_outlines",
+    "create_zone_region_mapping",
+    "export_zone_region_mapping",
 ]

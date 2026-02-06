@@ -85,9 +85,7 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
     @property
     def _standard_result(self) -> standard_result.InplaceVolumesStandardResult:
         """Standard result type for the exported data."""
-        return standard_result.InplaceVolumesStandardResult(
-            name=enums.StandardResultName.inplace_volumes
-        )
+        return standard_result.InplaceVolumesStandardResult(name=enums.StandardResultName.inplace_volumes)
 
     @property
     def _content(self) -> Content:
@@ -160,18 +158,14 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
         """Fetch volumetric table from RMS and convert to pandas dataframe"""
         _logger.debug("Read values and convert to pandas dataframe...")
         return pd.DataFrame.from_dict(
-            self.project.volumetric_tables[self._volume_table_name]
-            .get_data_table()
-            .to_dict()
+            self.project.volumetric_tables[self._volume_table_name].get_data_table().to_dict()
         )
 
     @staticmethod
     def _convert_table_from_rms_to_legacy_format(table: pd.DataFrame) -> pd.DataFrame:
         """Rename columns to legacy naming standard and drop REAL column if present."""
         _logger.debug("Converting dataframe from RMS to legacy format...")
-        return table.rename(columns=_RENAME_COLUMNS_FROM_RMS).drop(
-            columns="REAL", errors="ignore"
-        )
+        return table.rename(columns=_RENAME_COLUMNS_FROM_RMS).drop(columns="REAL", errors="ignore")
 
     @staticmethod
     def _compute_water_zone_volumes_from_totals(table: pd.DataFrame) -> pd.DataFrame:
@@ -237,14 +231,10 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
     def _set_table_column_order(table: pd.DataFrame) -> pd.DataFrame:
         """Set the column order in the table."""
         _logger.debug("Settting the table column order...")
-        return table[
-            [col for col in enums.InplaceVolumes.table_columns() if col in table]
-        ]
+        return table[[col for col in enums.InplaceVolumes.table_columns() if col in table]]
 
     @staticmethod
-    def _transform_and_add_fluid_column_to_table(
-        table: pd.DataFrame, table_index: list[str]
-    ) -> pd.DataFrame:
+    def _transform_and_add_fluid_column_to_table(table: pd.DataFrame, table_index: list[str]) -> pd.DataFrame:
         """
         Transformation of a dataframe containing fluid-specific column data into a
         standardized format with unified column names, e.g. 'BULK_OIL' and 'PORV_OIL'
@@ -259,16 +249,12 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
             enums.InplaceVolumes.Fluid.water.value,
         ):
             fluid_suffix = fluid.upper()
-            fluid_columns = [
-                col for col in table.columns if col.endswith(f"_{fluid_suffix}")
-            ]
+            fluid_columns = [col for col in table.columns if col.endswith(f"_{fluid_suffix}")]
             if fluid_columns:
                 fluid_table = table[table_index + fluid_columns].copy()
 
                 # drop fluid suffix from columns to get standard names
-                fluid_table.columns = fluid_table.columns.str.replace(
-                    f"_{fluid_suffix}", ""
-                )
+                fluid_table.columns = fluid_table.columns.str.replace(f"_{fluid_suffix}", "")
 
                 # add the fluid as column entry instead
                 fluid_table[_TableIndexColumns.FLUID.value] = fluid
@@ -277,9 +263,7 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
 
         return pd.concat(tables, ignore_index=True) if tables else pd.DataFrame()
 
-    def _convert_table_from_legacy_to_standard_format(
-        self, table: pd.DataFrame
-    ) -> pd.DataFrame:
+    def _convert_table_from_legacy_to_standard_format(self, table: pd.DataFrame) -> pd.DataFrame:
         """
         Convert the table from legacy to standard format for the 'inplace_volumes'
         standard result. The standard format has a fluid column, and all required
@@ -318,8 +302,7 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
         for col in enums.InplaceVolumes.required_index_columns():
             if self._is_column_missing_in_table(col):
                 raise RuntimeError(
-                    f"Required index column {col} is missing in the volumetric table. "
-                    + standard_error_msg
+                    f"Required index column {col} is missing in the volumetric table. " + standard_error_msg
                 )
 
         has_oil = "oil" in self._dataframe[_TableIndexColumns.FLUID.value].values
@@ -338,9 +321,7 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
             if self._is_column_missing_in_table(col):
                 missing_calculations.append(col)
 
-        if has_oil and self._is_column_missing_in_table(
-            _VolumetricColumns.STOIIP.value
-        ):
+        if has_oil and self._is_column_missing_in_table(_VolumetricColumns.STOIIP.value):
             missing_calculations.append(_VolumetricColumns.STOIIP.value)
 
         if has_gas and self._is_column_missing_in_table(_VolumetricColumns.GIIP.value):
@@ -349,8 +330,7 @@ class _ExportVolumetricsRMS(SimpleExportRMSBase):
         if missing_calculations:
             raise RuntimeError(
                 f"Required calculations {missing_calculations} are missing "
-                f"in the volumetric table {self._volume_table_name}. "
-                + standard_error_msg
+                f"in the volumetric table {self._volume_table_name}. " + standard_error_msg
             )
 
         df = self._dataframe.replace(np.nan, None).to_dict(orient="records")
