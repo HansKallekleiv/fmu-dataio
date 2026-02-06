@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Final
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 
@@ -259,3 +260,36 @@ def export_zone_region_mapping(
         grid_name,
         volume_job_name,
     ).export()
+
+
+def create_fipgrp_parameter(project, grid_name:str,zone_property_name:str, volume_job_name:str):
+    volume_job = rmsjobs.Job.get_job(
+        owner=["Grid models", grid_name, "Grid"],
+        type="Volumetrics",
+        name=volume_job_name,
+    ).get_arguments()
+
+    input_params = volume_job.get("Input", [{}])[0]
+    region_config = input_params.get("RegionProperty",[])
+    if len(region_config) != 3:
+        raise ValueError("VOLume job needs regions")
+    region_parameter_name = region_config[2]
+    # Cant get zone property?
+
+    grid_model = project.grid_models[grid_name]
+
+    grid = grid_model.get_grid()
+    region_prop=grid_model.properties[region_parameter_name]
+    zone_prop = grid_model.properties[zone_property_name]
+    zone_values = zone_prop.get_values(0)            
+    region_values = region_prop.get_values(0)     
+    num_zones = len(zone_prop.code_names.keys())
+    num_regions = len(region_prop.code_names.keys())
+
+    lookup_table = np.arange(1, num_zones*num_regions+1).reshape(num_zones, num_regions)
+    fipvalues = lookup_table[zone_values-1, region_values-1]
+    fipvalues = fipvalues.astype(np.uint16)
+    fip_property = grid_model.properties.create('FIPGRP',
+                        property_type = rmsapi.GridPropertyType.discrete,
+                        data_type = np.uint16)
+    fip_property.set_values(fipvalues,0)

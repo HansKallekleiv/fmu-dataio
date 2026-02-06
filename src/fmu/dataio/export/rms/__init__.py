@@ -10,6 +10,7 @@ from .structure_time_surfaces import export_structure_time_surfaces
 from .zone_region_mapping import (
     create_zone_region_mapping,
     export_zone_region_mapping,
+    create_fipgrp_parameter
 )
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "export_fluid_contact_outlines",
     "create_zone_region_mapping",
     "export_zone_region_mapping",
+    "create_fipgrp_parameter"
 ]
