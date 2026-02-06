@@ -21,7 +21,7 @@ rmsapi, rmsjobs = import_rms_package()
 
 _logger: Final = null_logger(__name__)
 
-_TableIndexColumns = enums.InplaceVolumes.TableIndexColumns
+_TableIndexColumns = enums.ZoneRegionIndex.TableIndexColumns
 
 
 def create_zone_region_mapping(
@@ -46,7 +46,7 @@ def create_zone_region_mapping(
         volume_job_name: Name of the volume job (same job used for volume export).
 
     Returns:
-        DataFrame with columns ZONE, REGION, and FIPVOL (the unique integer ID).
+        DataFrame with columns ZONE, REGION, and FIPGRP (the unique integer ID).
 
     Examples:
         Example usage in an RMS script::
@@ -56,7 +56,7 @@ def create_zone_region_mapping(
             mapping = create_zone_region_mapping(project, "Geogrid", "geogrid_volumes")
             print(mapping)
             # Output:
-            #       ZONE      REGION  FIPVOL
+            #       ZONE      REGION  FIPGRP
             # 0  Valysar  WestLowland       1
             # 1  Valysar  CentralSouth      2
             # ...
@@ -98,17 +98,17 @@ def create_zone_region_mapping(
 
     # Create mapping: outer loop zones, inner loop regions
     mapping = []
-    fipvol_id = 1
+    fipgrp_id = 1
     for zone in zone_names:
         for region in region_names:
             mapping.append(
                 {
                     _TableIndexColumns.ZONE.value: zone,
                     _TableIndexColumns.REGION.value: region,
-                    "FIPVOL": fipvol_id,
+                    _TableIndexColumns.FIPGRP.value: fipgrp_id,
                 }
             )
-            fipvol_id += 1
+            fipgrp_id += 1
 
     return pd.DataFrame(mapping)
 
@@ -137,15 +137,15 @@ class _ExportZoneRegionMapping(SimpleExportRMSBase):
         """No standard result for zone/region mapping."""
         return None
 
-    @property
-    def _subfolder(self) -> str:
-        """Use 'parameters' as subfolder for zone/region mapping."""
-        return "parameters"
+    # @property
+    # def _subfolder(self) -> str:
+    #     """Use 'mappings' as subfolder for zone/region mapping."""
+    #     return "mappings"
 
     @property
     def _content(self) -> Content:
         """Get content for the exported data."""
-        return Content.parameters
+        return Content.mappings
 
     @property
     def _classification(self) -> Classification:
@@ -191,7 +191,11 @@ class _ExportZoneRegionMapping(SimpleExportRMSBase):
             raise RuntimeError("Zone/region mapping table is empty.")
 
         # Check for required columns
-        required_cols = [_TableIndexColumns.ZONE.value, _TableIndexColumns.REGION.value, "FIPVOL"]
+        required_cols = [
+            _TableIndexColumns.ZONE.value,
+            _TableIndexColumns.REGION.value,
+            _TableIndexColumns.FIPGRP.value,
+        ]
         for col in required_cols:
             if col not in self._dataframe.columns:
                 raise RuntimeError(f"Required column '{col}' missing from mapping table.")
@@ -201,11 +205,11 @@ class _ExportZoneRegionMapping(SimpleExportRMSBase):
         if duplicates.any():
             raise RuntimeError("Duplicate zone/region combinations found in mapping.")
 
-        # Check FIPVOL values are unique and sequential
-        fipvol_values = sorted(self._dataframe["FIPVOL"].values)
+        # Check FIPGRP values are unique and sequential
+        fipgrp_values = sorted(self._dataframe[_TableIndexColumns.FIPGRP.value].values)
         expected_values = list(range(1, len(self._dataframe) + 1))
-        if fipvol_values != expected_values:
-            raise RuntimeError("FIPVOL values are not sequential integers starting from 1.")
+        if fipgrp_values != expected_values:
+            raise RuntimeError(f"{_TableIndexColumns.FIPGRP.value} values are not sequential integers starting from 1.")
 
 
 def export_zone_region_mapping(
@@ -213,7 +217,7 @@ def export_zone_region_mapping(
     grid_name: str,
     volume_job_name: str,
 ) -> ExportResult:
-    """Export zone/region to FIPVOL mapping table for RMS-simulator comparison.
+    """Export zone/region to FIPGRP mapping table for RMS-simulator comparison.
 
     This function creates and exports a mapping table between zone/region combinations
     and unique integer IDs (similar to Eclipse FIPNUM). The mapping uses the exact
