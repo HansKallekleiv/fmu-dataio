@@ -170,7 +170,11 @@ class _ExportZoneRegionMapping(SimpleExportRMSBase):
             name=f"{self.grid_name}_zone_region_mapping",
             tagname="zone_region_mapping",
             rep_include=self._rep_include,
-            table_index=[_TableIndexColumns.ZONE.value, _TableIndexColumns.REGION.value],
+            table_index=[
+                _TableIndexColumns.ZONE.value,
+                _TableIndexColumns.REGION.value,
+                _TableIndexColumns.FIPGRP.value,
+            ],
         )
 
         mapping_table = pa.Table.from_pandas(self._dataframe)
@@ -262,7 +266,7 @@ def export_zone_region_mapping(
     ).export()
 
 
-def create_fipgrp_parameter(project, grid_name:str,zone_property_name:str, volume_job_name:str):
+def create_fipgrp_parameter(project, grid_name: str, zone_property_name: str, volume_job_name: str):
     volume_job = rmsjobs.Job.get_job(
         owner=["Grid models", grid_name, "Grid"],
         type="Volumetrics",
@@ -270,7 +274,7 @@ def create_fipgrp_parameter(project, grid_name:str,zone_property_name:str, volum
     ).get_arguments()
 
     input_params = volume_job.get("Input", [{}])[0]
-    region_config = input_params.get("RegionProperty",[])
+    region_config = input_params.get("RegionProperty", [])
     if len(region_config) != 3:
         raise ValueError("VOLume job needs regions")
     region_parameter_name = region_config[2]
@@ -279,17 +283,17 @@ def create_fipgrp_parameter(project, grid_name:str,zone_property_name:str, volum
     grid_model = project.grid_models[grid_name]
 
     grid = grid_model.get_grid()
-    region_prop=grid_model.properties[region_parameter_name]
+    region_prop = grid_model.properties[region_parameter_name]
     zone_prop = grid_model.properties[zone_property_name]
-    zone_values = zone_prop.get_values(0)            
-    region_values = region_prop.get_values(0)     
+    zone_values = zone_prop.get_values(0)
+    region_values = region_prop.get_values(0)
     num_zones = len(zone_prop.code_names.keys())
     num_regions = len(region_prop.code_names.keys())
 
-    lookup_table = np.arange(1, num_zones*num_regions+1).reshape(num_zones, num_regions)
-    fipvalues = lookup_table[zone_values-1, region_values-1]
+    lookup_table = np.arange(1, num_zones * num_regions + 1).reshape(num_zones, num_regions)
+    fipvalues = lookup_table[zone_values - 1, region_values - 1]
     fipvalues = fipvalues.astype(np.uint16)
-    fip_property = grid_model.properties.create('FIPGRP',
-                        property_type = rmsapi.GridPropertyType.discrete,
-                        data_type = np.uint16)
-    fip_property.set_values(fipvalues,0)
+    fip_property = grid_model.properties.create(
+        "FIPGRP", property_type=rmsapi.GridPropertyType.discrete, data_type=np.uint16
+    )
+    fip_property.set_values(fipvalues, 0)
