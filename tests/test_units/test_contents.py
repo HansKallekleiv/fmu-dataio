@@ -403,17 +403,24 @@ def test_content_volumes(
     assert meta["data"]["content"] == "volumes"
 
 
-def test_content_wellpicks(
-    wellpicks: pd.DataFrame, drogon_global_config: dict[str, Any]
-) -> None:
-    """Test export of the wellpicks content."""
+def test_content_wellbore_picks(drogon_global_config: dict[str, Any]) -> None:
+    """Test export of the wellbore picks content."""
+    table = pd.DataFrame(
+        {
+            "WELL": ["A"],
+            "WELLBORE": ["A-1"],
+            "IDENTIFIER": ["TopVolantis"],
+            "IDENTIFIER_TYPE": ["horizon"],
+            "OBS_NO": [1],
+        }
+    )
     meta = ExportData(
         config=drogon_global_config,
         name="MyName",
-        content="wellpicks",
-    ).generate_metadata(wellpicks)
+        content="wellbore_picks",
+    ).generate_metadata(table)
 
-    assert meta["data"]["content"] == "wellpicks"
+    assert meta["data"]["content"] == "wellbore_picks"
 
 
 def test_content_production_network(

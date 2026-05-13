@@ -8,7 +8,13 @@ from typing import Final
 from pydantic import BaseModel, model_validator
 
 from fmu.datamodels.fmu_results.enums import Content
-from fmu.datamodels.standard_results.enums import InplaceVolumes, SimulatorTables
+from fmu.datamodels.standard_results.enums import (
+    InplaceVolumes,
+    SimulatorTables,
+    WellboreLogs,
+    WellborePicks,
+    WellboreTrajectory,
+)
 
 ERT_RELATIVE_CASE_METADATA_FILE: Final = "share/metadata/fmu_case.yml"
 
@@ -79,9 +85,17 @@ STANDARD_TABLE_INDEX_COLUMNS: Final[dict[Content, StandardTableIndex]] = {
         columns=SimulatorTables.SimulationTimeseriesColumns.index_columns(),
         required=SimulatorTables.SimulationTimeseriesColumns.index_columns(),
     ),
-    Content.wellpicks: StandardTableIndex(
-        columns=["WELL", "HORIZON"],
-        required=["WELL", "HORIZON"],
+    Content.wellbore_trajectory: StandardTableIndex(
+        columns=WellboreTrajectory.index_columns(),
+        required=WellboreTrajectory.required_index_columns(),
+    ),
+    Content.wellbore_logs: StandardTableIndex(
+        columns=WellboreLogs.index_columns(),
+        required=WellboreLogs.required_index_columns(),
+    ),
+    Content.wellbore_picks: StandardTableIndex(
+        columns=WellborePicks.index_columns(),
+        required=WellborePicks.required_index_columns(),
     ),
     Content.relperm: StandardTableIndex(
         columns=SimulatorTables.RelpermColumns.index_columns(),

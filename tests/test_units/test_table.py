@@ -316,19 +316,115 @@ def test_table_index_rft_from_standard(drogon_global_config: dict[str, Any]) -> 
     assert set(meta["data"]["table_index"]) == {"DATE"}
 
 
-def test_table_wellpicks(
-    wellpicks: pd.DataFrame, mock_global_config: dict[str, Any]
+def test_table_wellbore_trajectory(mock_global_config: dict[str, Any]) -> None:
+    """Test table index for wellbore trajectory data."""
+
+    table = pd.DataFrame(
+        {
+            "WELL": ["A", "A", "A"],
+            "WELLBORE": ["A-1", "A-1", "A-1"],
+            "MD": [1000.0, 1005.0, 1010.0],
+            "X_UTME": [46123.45, 46124.56, 46125.67],
+            "Y_UTMN": [5931123.45, 5931124.56, 5931125.78],
+            "Z_TVDSS": [1500.0, 1505.0, 1510.0],
+        }
+    )
+    exp = ExportData(
+        config=mock_global_config,
+        name="wellbore_trajectory",
+        content="wellbore_trajectory",
+    )
+
+    metadata = exp.generate_metadata(table)
+
+    assert metadata["data"]["content"] == "wellbore_trajectory"
+    assert metadata["data"]["table_index"] == ["WELL", "WELLBORE", "MD"]
+
+
+def test_table_wellbore_logs_pyarrow(mock_global_config: dict[str, Any]) -> None:
+    """Test table index for wellbore logs data exported as Arrow."""
+
+    table = pa.Table.from_pandas(
+        pd.DataFrame(
+            {
+                "WELL": ["A", "A", "B"],
+                "WELLBORE": ["A-1", "A-1", "B-1"],
+                "MD": [1000.0, 1005.0, 900.0],
+                "GR": [75.0, 78.0, 65.0],
+                "PORO": [0.22, 0.21, 0.18],
+            }
+        )
+    )
+    exp = ExportData(
+        config=mock_global_config,
+        name="wellbore_logs",
+        content="wellbore_logs",
+    )
+
+    metadata = exp.generate_metadata(table)
+
+    assert metadata["data"]["content"] == "wellbore_logs"
+    assert metadata["data"]["table_index"] == ["WELL", "WELLBORE", "MD"]
+
+
+def test_table_wellbore_picks(mock_global_config: dict[str, Any]) -> None:
+    """Test table index for wellbore picks data."""
+
+    table = pd.DataFrame(
+        {
+            "WELL": ["A", "A", "B"],
+            "WELLBORE": ["A-1", "A-2", "B-1"],
+            "X_UTME": [46123.45, 46124.56, 46125.67],
+            "Y_UTMN": [5931123.45, 5931124.56, 5931125.78],
+            "Z_TVDSS": [1500.0, 1505.0, 1510.0],
+            "MD": [1000.0, 1005.0, 1010.0],
+            "IDENTIFIER": ["TopVolantis", "TopVolantis", "TopTherys"],
+            "IDENTIFIER_TYPE": ["horizon", "horizon", "horizon"],
+            "OBS_NO": [1, 1, 1],
+            "PICK_SET": ["base", "base", "cohiba_uncertainty"],
+        }
+    )
+    exp = ExportData(
+        config=mock_global_config,
+        name="wellbore_picks",
+        content="wellbore_picks",
+    )
+
+    metadata = exp.generate_metadata(table)
+
+    assert metadata["data"]["content"] == "wellbore_picks"
+    assert metadata["data"]["table_index"] == [
+        "WELL",
+        "WELLBORE",
+        "IDENTIFIER",
+        "IDENTIFIER_TYPE",
+        "OBS_NO",
+    ]
+
+
+def test_table_wellbore_picks_missing_required_index_column(
+    mock_global_config: dict[str, Any]
 ) -> None:
-    """Test export of wellpicks"""
+    """Warn when a wellbore picks table misses required index columns."""
 
-    exp = ExportData(config=mock_global_config, name="wellpicks", content="wellpicks")
+    table = pd.DataFrame(
+        {
+            "WELL": ["A"],
+            "WELLBORE": ["A-1"],
+            "IDENTIFIER": ["TopVolantis"],
+            "OBS_NO": [1],
+        }
+    )
+    exp = ExportData(
+        config=mock_global_config,
+        name="wellbore_picks",
+        content="wellbore_picks",
+    )
 
-    metadata = exp.generate_metadata(wellpicks)
+    with pytest.warns(FutureWarning, match="standard"):
+        metadata = exp.generate_metadata(table)
 
-    assert metadata["data"]["content"] == "wellpicks"
-
-    # table index shall be inserted automatically
-    assert metadata["data"]["table_index"] == ["WELL", "HORIZON"]
+    assert metadata["data"]["table_index"] == ["WELL", "WELLBORE", "IDENTIFIER", "OBS_NO"]
 
 
 def test_production_network_index(mock_global_config: dict[str, Any]) -> None:
