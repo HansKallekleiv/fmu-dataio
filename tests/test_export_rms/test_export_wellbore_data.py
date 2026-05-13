@@ -191,12 +191,18 @@ def test_public_export_functions(
     assert len(logs_out.items) == 1
     assert mock_well_from_roxar.call_count == 4
 
-    assert dataio.read_metadata(trajectory_out.items[0].absolute_path)["data"][
-        "standard_result"
-    ]["name"] == StandardResultName.wellbore_trajectory
-    assert dataio.read_metadata(logs_out.items[0].absolute_path)["data"][
-        "standard_result"
-    ]["name"] == StandardResultName.wellbore_logs
+    assert (
+        dataio.read_metadata(trajectory_out.items[0].absolute_path)["data"][
+            "standard_result"
+        ]["name"]
+        == StandardResultName.wellbore_trajectory
+    )
+    assert (
+        dataio.read_metadata(logs_out.items[0].absolute_path)["data"][
+            "standard_result"
+        ]["name"]
+        == StandardResultName.wellbore_logs
+    )
 
 
 @pytest.mark.usefixtures("inside_rms_interactive")

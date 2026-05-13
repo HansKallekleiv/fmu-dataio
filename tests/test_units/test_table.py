@@ -403,7 +403,7 @@ def test_table_wellbore_picks(mock_global_config: dict[str, Any]) -> None:
 
 
 def test_table_wellbore_picks_missing_required_index_column(
-    mock_global_config: dict[str, Any]
+    mock_global_config: dict[str, Any],
 ) -> None:
     """Warn when a wellbore picks table misses required index columns."""
 
@@ -424,7 +424,12 @@ def test_table_wellbore_picks_missing_required_index_column(
     with pytest.warns(FutureWarning, match="standard"):
         metadata = exp.generate_metadata(table)
 
-    assert metadata["data"]["table_index"] == ["WELL", "WELLBORE", "IDENTIFIER", "OBS_NO"]
+    assert metadata["data"]["table_index"] == [
+        "WELL",
+        "WELLBORE",
+        "IDENTIFIER",
+        "OBS_NO",
+    ]
 
 
 def test_production_network_index(mock_global_config: dict[str, Any]) -> None:

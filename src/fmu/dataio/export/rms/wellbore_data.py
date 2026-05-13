@@ -103,9 +103,7 @@ def _trajectory_table(
         )
         table.insert(0, "WELLBORE", well.wellname)
         table.insert(0, "WELL", _well_parent_name(well.wellname, well_parent_names))
-        tables.append(
-            table[["WELL", "WELLBORE", "MD", "X_UTME", "Y_UTMN", "Z_TVDSS"]]
-        )
+        tables.append(table[["WELL", "WELLBORE", "MD", "X_UTME", "Y_UTMN", "Z_TVDSS"]])
 
     return pd.concat(tables, ignore_index=True)
 
