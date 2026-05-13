@@ -10,6 +10,7 @@ from .structure_depth_fault_surfaces import export_structure_depth_fault_surface
 from .structure_depth_isochores import export_structure_depth_isochores
 from .structure_depth_surfaces import export_structure_depth_surfaces
 from .structure_time_surfaces import export_structure_time_surfaces
+from .wellbore_data import export_wellbore_logs, export_wellbore_trajectories
 
 __all__ = [
     "export_structure_depth_fault_lines",
@@ -24,5 +25,7 @@ __all__ = [
     "export_field_outline",
     "export_fluid_contact_surfaces",
     "export_fluid_contact_outlines",
+    "export_wellbore_trajectories",
+    "export_wellbore_logs",
     "create_fipnum_property",
 ]
