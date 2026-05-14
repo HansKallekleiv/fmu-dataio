@@ -123,6 +123,7 @@ def test_export_wellbore_trajectory_metadata(
     ).resolve()
     assert out.items[0].absolute_path == export_folder / "wellbore_trajectory.parquet"
     assert out.items[0].absolute_path.exists()
+    assert out.items[0].absolute_path.read_bytes()[:4] == b"PAR1"
     assert (export_folder / ".wellbore_trajectory.parquet.yml").exists()
 
     metadata = dataio.read_metadata(out.items[0].absolute_path)
@@ -149,6 +150,8 @@ def test_export_wellbore_logs_metadata(
     logs_exporter: _ExportWellboreLogs,
 ) -> None:
     out = logs_exporter.export()
+
+    assert out.items[0].absolute_path.read_bytes()[:4] == b"PAR1"
 
     metadata = dataio.read_metadata(out.items[0].absolute_path)
 

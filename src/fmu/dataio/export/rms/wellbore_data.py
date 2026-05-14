@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Final
 
 import pandas as pd
+import pyarrow as pa
 import xtgeo
 
 from fmu.dataio._export import ExportConfig, export_with_metadata
@@ -174,8 +175,9 @@ class _ExportWellboreTrajectory(SimpleExportBase):
         )
 
     def _export_data_as_standard_result(self) -> ExportResult:
+        table = pa.Table.from_pandas(self._table, preserve_index=False)
         absolute_export_path = export_with_metadata(
-            self._get_export_config(), self._table
+            self._get_export_config(), table
         )
         _logger.debug("Wellbore trajectory exported to: %s", absolute_export_path)
 
@@ -229,8 +231,9 @@ class _ExportWellboreLogs(SimpleExportBase):
         )
 
     def _export_data_as_standard_result(self) -> ExportResult:
+        table = pa.Table.from_pandas(self._table, preserve_index=False)
         absolute_export_path = export_with_metadata(
-            self._get_export_config(), self._table
+            self._get_export_config(), table
         )
         _logger.debug("Wellbore logs exported to: %s", absolute_export_path)
 
